@@ -4,11 +4,10 @@ PyTorch implementation of the paper, </br>
 > Kumar et al., 2016 arxiv
 
 ## Requirements
-- Install [cuda-10.0](https://developer.nvidia.com/cuda-downlaods)
-- Install [cudnn-v7.5](https://developer.nvidia.com/cudnn)
-- Install [Pytorch 1.0.1](https://pytorch.org/)
+- Install >= [cuda-8.0](https://developer.nvidia.com/cuda-downlaods)
+- Install >= [cudnn-v5.1](https://developer.nvidia.com/cudnn)
+- Install >= [Pytorch 0.4.0](https://pytorch.org/)
 - Python version >= 3.5 is required
-- Install nlttk cython tensorboardX for Python
 
 ## Datasets
 - bAQbI Tasks v1.2 data downloaded from [here](https://research.fb.com/downloads/babi/)
@@ -23,7 +22,7 @@ $ python dataset.py
 ## Run experiments
 ```bash
 # Train and test with default settings
-$ python main.py --valid 0
+$ python main.py
 
 # Train with different number of hidden units, epochs, and QA sets
 $ python main.py --s_rnn_hdim 200 --epoch 20 --set_num 5

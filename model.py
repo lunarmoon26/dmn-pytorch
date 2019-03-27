@@ -116,8 +116,8 @@ class DMN(nn.Module):
         #     torch.abs(s_rep-q_rep), torch.abs(s_rep-memory), swq, swm], 2)
         Z = torch.cat([s_rep*q_rep, s_rep*memory,
             torch.abs(s_rep-q_rep), torch.abs(s_rep-memory)], 2)
-        G = self.g2(torch.tanh(self.g1(Z.view(-1, self.z_dim))))
-        G_s = torch.sigmoid(G).view(
+        G = self.g2(F.tanh(self.g1(Z.view(-1, self.z_dim))))
+        G_s = F.sigmoid(G).view(
                 -1, self.config.max_sentnum[self.set_num] + 1).unsqueeze(2)
         G_s = torch.transpose(G_s, 0, 1).contiguous()
         s_rep = torch.transpose(s_rep, 0, 1).contiguous()
