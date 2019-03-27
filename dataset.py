@@ -308,10 +308,10 @@ class Dataset(object):
 class Config(object):
     def __init__(self):
         user_home = expanduser('~')
-        self.data_dir = os.path.join(user_home, 'datasets/babi/en')
+        self.data_dir = os.path.join(user_home, 'datasets/babi/en-valid')
         self.word2vec_type = 6  # 6 or 840 (B)
-        self.word2vec_path = expanduser('~') + '/datasets/glove/glove.'\
-                + str(self.word2vec_type) + 'B.300d.txt'
+        self.word2vec_path = os.path.join(user_home, 
+            'datasets/glove/glove.%dB.300d.txt' % self.word2vec_type)
         self.word_embed_dim = 300
         self.batch_size = 32
         self.max_sentnum = {}
