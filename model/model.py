@@ -13,6 +13,8 @@ class DMN(nn.Module):
         super(DMN, self).__init__()
         self.config = config
         self.set_num = set_num
+        USE_CUDA = torch.cuda.is_available()
+        self.device = torch.device("cuda" if USE_CUDA else "cpu")
 
         # embedding layers
         self.word_embed = nn.Embedding(config.word_vocab_size, config.word_embed_dim,
@@ -73,10 +75,10 @@ class DMN(nn.Module):
     
     def init_rnn_h(self, batch_size):
         return Variable(torch.zeros(
-            self.config.s_rnn_ln*1, batch_size, self.config.s_rnn_hdim)).cuda()
+            self.config.s_rnn_ln*1, batch_size, self.config.s_rnn_hdim)).to(self.device)
 
     def init_cell_h(self, batch_size):
-        return Variable(torch.zeros(batch_size, self.config.s_rnn_hdim)).cuda()
+        return Variable(torch.zeros(batch_size, self.config.s_rnn_hdim)).to(self.device)
 
     def input_module(self, stories, s_lens):
         word_embed = F.dropout(self.word_embed(stories), self.config.word_dr)
@@ -87,7 +89,7 @@ class DMN(nn.Module):
                 * self.config.max_slen[self.set_num]).unsqueeze(1)
         s_lens = (torch.clamp(s_lens + s_lens_offset - 1, min=0)).view(-1)
         selected = gru_out[s_lens,:].view(-1, self.config.max_sentnum[self.set_num],
-                self.config.s_rnn_hdim).cuda()
+                self.config.s_rnn_hdim).to(self.device)
         return selected 
 
     def question_module(self, questions, q_lens):
@@ -97,14 +99,14 @@ class DMN(nn.Module):
         gru_out = gru_out.contiguous().view(-1, self.config.q_rnn_hdim).cpu()
         q_lens = (torch.arange(0, questions.size(0)).type(torch.LongTensor)
                 * self.config.max_qlen[self.set_num] + q_lens - 1)
-        selected = gru_out[q_lens,:].view(-1, self.config.q_rnn_hdim).cuda() 
+        selected = gru_out[q_lens,:].view(-1, self.config.q_rnn_hdim).to(self.device)
 
         return selected
 
     def episodic_memory_module(self, s_rep, q_rep, e_lens, memory):
         # expand s_rep to have sentinel
         sentinel = Variable(torch.zeros(
-            s_rep.size(0), 1, self.config.s_rnn_hdim)).cuda()
+            s_rep.size(0), 1, self.config.s_rnn_hdim)).to(self.device)
         s_rep = torch.cat((s_rep, sentinel), 1)
         q_rep = q_rep.unsqueeze(1).expand_as(s_rep)
         memory = memory.unsqueeze(1).expand_as(s_rep)
@@ -134,7 +136,7 @@ class DMN(nn.Module):
                 -1, self.config.e_cell_hdim).cpu()
         e_lens = (torch.arange(0, s_rep.size(1)).type(torch.LongTensor)
                 * (self.config.max_sentnum[self.set_num]+1) + e_lens - 1)
-        selected = hiddens[e_lens,:].view(-1, self.config.e_cell_hdim).cuda() 
+        selected = hiddens[e_lens,:].view(-1, self.config.e_cell_hdim).to(self.device)
         # print('out', selected.size())
         return selected, G.view(-1, self.config.max_sentnum[self.set_num] + 1)
 

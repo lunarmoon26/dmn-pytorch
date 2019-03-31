@@ -8,6 +8,12 @@ import string
 import os
 from os.path import expanduser
 
+import os, ssl
+
+# To bypass ssl issue 
+if (not os.environ.get('PYTHONHTTPSVERIFY', '') and 
+    getattr(ssl, '_create_unverified_context', None)): 
+    ssl._create_default_https_context = ssl._create_unverified_context
 nltk.download('punkt')
 
 
@@ -43,7 +49,7 @@ class Dataset(object):
     def map_dict(self, key_list, dictionary):
         output = []
         for key in key_list:
-            assert key in dictionary
+            # assert key in dictionary
             if key in dictionary:
                 output.append(dictionary[key])
         return output
@@ -98,6 +104,27 @@ class Dataset(object):
     def get_pretrained_word(self, path):
         print('\n### loading pretrained %s' % path)
         word2vec = {}
+        # with gzip.open(path, "rt", encoding="utf8") as f:
+        #     # Read the remaining lines
+        #     for line in f: # traverse line in file descriptor f
+        #         # Remove line trailing newline
+        #         line = line.strip()
+        #         # Split into word string and vector string
+        #         # First space-separated column is the word string
+        #         first_space_pos = line.find(' ', 1)
+        #         word = line[:first_space_pos]
+        #         # Check if word is in word2idx, skip if not
+        #         if word not in word2idx:
+        #             continue
+        #         # Word index corresponds to the row in the embedding tensor
+        #         idx = word2idx[word]
+        #         # The remaining column is the vector string
+        #         emb_str = line[first_space_pos+1:].strip()
+        #         # Convert all vector strings into a list of floating point
+        #         emb = [float(t) for t in emb_str.split(' ')]
+        #         # Convert Python list into PyTorch tensor
+        #         embeddings[idx] = torch.tensor(emb)
+
         with open(path, 'r', encoding='utf-8', errors='ignore') as f:
             while True:
                 try:
@@ -308,10 +335,10 @@ class Dataset(object):
 class Config(object):
     def __init__(self):
         user_home = expanduser('~')
-        self.data_dir = os.path.join(user_home, 'datasets/babi/en')
+        self.data_dir = os.path.join(user_home, 'Documents/Masters/CS5246/Project/dmn-pytorch-develop/data/babi')
         self.word2vec_type = 6  # 6 or 840 (B)
-        self.word2vec_path = expanduser('~') + '/datasets/glove/glove.'\
-                + str(self.word2vec_type) + 'B.300d.txt'
+        self.word2vec_path = os.path.join(user_home, 
+            'Documents/Masters/CS5246/Project/dmn-pytorch-develop/data/glove.6B.300d.txt')
         self.word_embed_dim = 300
         self.batch_size = 32
         self.max_sentnum = {}

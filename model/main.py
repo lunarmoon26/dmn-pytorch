@@ -102,6 +102,9 @@ def main():
     print('### load dataset')
     dataset = pickle.load(open(args.data_path, 'rb'))
     
+    USE_CUDA = torch.cuda.is_available()
+    device = torch.device("cuda" if USE_CUDA else "cpu")
+
     # update args
     dataset.config.__dict__.update(args.__dict__)
     args.__dict__.update(dataset.config.__dict__)
@@ -111,7 +114,7 @@ def main():
     # new model experiment
     for set_num in range(args.set_num, args.set_num+1):
         print('\n[QA set %d]' % (set_num))
-        model = DMN(args, dataset.idx2vec, set_num).cuda()
+        model = DMN(args, dataset.idx2vec, set_num).to(device)
         results = run_experiment(model, dataset, set_num)
 
     print('### end of experiment')

@@ -15,13 +15,16 @@ def run_epoch(m, d, ep, mode='tr', set_num=1, is_train=True):
     start_time = datetime.now()
     d.shuffle_data(seed=None, mode='tr')
 
+    USE_CUDA = torch.cuda.is_available()
+    device = torch.device("cuda" if USE_CUDA else "cpu")
+
     while True:
         m.optimizer.zero_grad()
         stories, questions, answers, sup_facts, s_lens, q_lens, e_lens= \
                 d.get_next_batch(mode, set_num)
         #d.decode_data(stories[0], questions[0], answers[0], sup_facts[0], s_lens[0])
         wrap_tensor = lambda x: torch.LongTensor(np.array(x))
-        wrap_var = lambda x: Variable(wrap_tensor(x)).cuda()
+        wrap_var = lambda x: Variable(wrap_tensor(x)).to(device)
         stories = wrap_var(stories)
         questions = wrap_var(questions)
         answers = wrap_var(answers)
