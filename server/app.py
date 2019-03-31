@@ -4,10 +4,9 @@ https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.h
 """
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import numpy as np
 import pickle as p
-import json
 
 app = Flask(__name__)
 CORS(app)
@@ -23,18 +22,21 @@ def ask():
     """
     data = request.form
 
-    if data['user_id'] not in input_dict:
+    if data["user_id"] not in input_dict:
         return "this user does not have any action yet"
 
-    input_dict[data['user_id']].append(data['question'])
+    input_dict[data["user_id"]].append(data["question"])
 
     if model:
         ans = model.predict(data)
-        ans_str = np.array2string(ans)
-        prediction = {"answer": ans_str}
+        prediction = np.array2string(ans)
     else:
-        prediction = {"answer": "no module is available"}
-    resp = jsonify(prediction)
+        prediction = "no module is available"
+
+    # clean user actions
+    input_dict[data["user_id"]] = []
+
+    resp = jsonify({"answer": prediction})
     return resp
 
 
@@ -47,14 +49,13 @@ def input_action():
     }
     """
     # frontend post user actions in this api, actions are the input of input model
-
     data = request.form
 
     # save action into dict and later will be sent to model along with question
-    if data['user_id'] in input_dict:
-        input_dict[data['user_id']].append(data['action'])
+    if data["user_id"] in input_dict:
+        input_dict[data["user_id"]].append(data["action"])
     else:
-        input_dict[data['user_id']] = [data['action']]
+        input_dict[data["user_id"]] = [data["action"]]
 
     print(input_dict)
 
