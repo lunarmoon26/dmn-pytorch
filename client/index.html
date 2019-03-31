@@ -34,10 +34,18 @@
 
     <section class="text-center">
         <div class="btn-group mr-2 buttons" role="group" aria-label="Direction Buttons">
-            <button type="button" class="btn btn-dark" id="btn-left">Left</button>
-            <button type="button" class="btn btn-secondary" id="btn-up">Up</button>
-            <button type="button" class="btn btn-dark" id="btn-right">Right</button>
-            <button type="button" class="btn btn-secondary" id="btn-down">Down</button>
+            <button type="button" class="btn btn-dark" id="btn-left" value="left" onclick="userDirection(this.value)">
+                Left
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-up" value="up" onclick="userDirection(this.value)">
+                Up
+            </button>
+            <button type="button" class="btn btn-dark" id="btn-right" value="right" onclick="userDirection(this.value)">
+                Right
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-down" value="down"
+                    onclick="userDirection(this.value)">Down
+            </button>
         </div>
     </section>
 
@@ -47,25 +55,20 @@
         </div>
         <div class="input-group mb-9">
             <input type="text" class="form-control" placeholder="Your Question" aria-label="User's Question"
-                   aria-describedby="button-addon2">
+                   id="userQuestion"
+                   aria-describedby="userSubmitQuestion">
             <div class="input-group-append">
-                <button class="btn btn-outline-secondary" type="button" id="user-submit-question">Submit</button>
+                <button class="btn btn-outline-secondary" type="button" id="userSubmitQuestion"
+                        onclick="submitQuestion()">Submit
+                </button>
             </div>
         </div>
     </section>
 
 </main><!-- /.container -->
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
-        integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"
         crossorigin="anonymous"></script>
-<script>
-window.jQuery || document.write('<script src="/docs/4.3/assets/js/vendor/jquery-slim.min.js"><\/script>')
 
-
-</script>
-<script src="/docs/4.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-xrRywqdh3PHs8keKZN+8zzc5TX0GRTLCcmivcbNJWm2rs5C8PRhcEn3czEjhAO9o"
-        crossorigin="anonymous">
-</script>
+<script src="js/main.js" crossorigin="anonymous"></script>
 </body>
 </html>

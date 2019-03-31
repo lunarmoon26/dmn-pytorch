@@ -4,11 +4,13 @@ https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.h
 """
 
 from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
 import numpy as np
 import pickle as p
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/api/ask", methods=["POST"])
@@ -18,9 +20,8 @@ def ask():
         "question": "string",
         "user_id": "string",
     }
-    :return:
     """
-    data = request.get_json()
+    data = request.form
 
     if data['user_id'] not in input_dict:
         return "this user does not have any action yet"
@@ -43,11 +44,10 @@ def input_action():
         "action": "left|right|up|down",
         "user_id": "string",
     }
-    :return:
     """
     # frontend post user actions in this api, actions are the input of input model
 
-    data = request.get_json()
+    data = request.form
 
     # save action into dict and later will be sent to model along with question
     if data['user_id'] in input_dict:

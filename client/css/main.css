@@ -16,3 +16,7 @@
 .buttons {
     padding: 10px;
 }
+
+#conversationLog {
+    height: 40vh;
+}
