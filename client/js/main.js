@@ -6,7 +6,7 @@ let ASK_API = "/api/ask";
 let ACTION_API = "/api/action";
 
 function userDirection(item) {
-    log("Your move: " + item);
+    log("Move: " + item);
 
     let url = BASE_URL + ACTION_API;
     let data = {
@@ -40,8 +40,14 @@ function submitQuestion() {
     url: url,
     data: data,
     crossDomain: true,
-    success: function(result) {console.log(result);},
-    error: function(result) {console.log("[error]", result);}
+    success: function(result) {
+        console.log(result);
+        log("Answer: " + result["answer"])
+    },
+    error: function(result) {
+        console.log("[error]", result);
+        log("Error: " + result["answer"])
+    }
     });
 }
 

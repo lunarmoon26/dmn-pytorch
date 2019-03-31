@@ -30,9 +30,10 @@ def ask():
 
     if model:
         ans = model.predict(data)
-        prediction = np.array2string(ans)
+        ans_str = np.array2string(ans)
+        prediction = {"answer": ans_str}
     else:
-        prediction = {"error": "no module is available"}
+        prediction = {"answer": "no module is available"}
     resp = jsonify(prediction)
     return resp
 
