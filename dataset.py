@@ -6,6 +6,7 @@ import pickle
 import nltk
 import string
 import os
+import gzip
 from os.path import expanduser
 
 nltk.download('punkt')
@@ -98,16 +99,29 @@ class Dataset(object):
     def get_pretrained_word(self, path):
         print('\n### loading pretrained %s' % path)
         word2vec = {}
-        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-            while True:
+        with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
+            for line in f:
                 try:
-                    line = f.readline()
-                    if not line: break
-                    word = line.split()[0]
+                    line = line.strip()
+                    first_space_pos = line.find(' ', 1)   
+                    word = line[:first_space_pos]
+                    if self.config.word2vec_type == 6:
+                        word = word.lower()
+                    if word not in self.init_word_dict:    
+                        continue 
                     vec = [float(l) for l in line.split()[1:]]
                     word2vec[word] = vec
                 except ValueError as e:
                     print(e)
+            # while True:
+            #     try:
+            #         line = f.readline()
+            #         if not line: break
+            #         word = line.split()[0]
+            #         vec = [float(l) for l in line.split()[1:]]
+            #         word2vec[word] = vec
+            #     except ValueError as e:
+            #         print(e)
         
         unk_cnt = 0
         self.idx2vec.append([0.0] * self.config.word_embed_dim) # PAD
@@ -309,9 +323,9 @@ class Config(object):
     def __init__(self):
         user_home = expanduser('~')
         self.data_dir = os.path.join(user_home, 'datasets/babi/en-valid')
-        self.word2vec_type = 6  # 6 or 840 (B)
+        self.word2vec_type = 840  # 6 or 840 (B)
         self.word2vec_path = os.path.join(user_home, 
-            'datasets/glove/glove.%dB.300d.txt' % self.word2vec_type)
+            'datasets/glove/glove.%dB.300d.txt.gz' % self.word2vec_type)
         self.word_embed_dim = 300
         self.batch_size = 32
         self.max_sentnum = {}
