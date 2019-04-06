@@ -4,9 +4,9 @@ PyTorch implementation of the paper, </br>
 > Kumar et al., 2016 arxiv
 
 ## Requirements
-- Install [cuda-8.0](https://developer.nvidia.com/cuda-downlaods)
-- Install [cudnn-v5.1](https://developer.nvidia.com/cudnn)
-- Install [Pytorch 0.4.0](https://pytorch.org/)
+- Install >= [cuda-8.0](https://developer.nvidia.com/cuda-downlaods)
+- Install >= [cudnn-v5.1](https://developer.nvidia.com/cudnn)
+- Install >= [Pytorch 0.4.0](https://pytorch.org/)
 - Python version >= 3.5 is required
 
 ## Datasets

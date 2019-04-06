@@ -6,6 +6,7 @@ import pickle
 import nltk
 import string
 import os
+import gzip
 from os.path import expanduser
 
 import os, ssl
@@ -33,18 +34,20 @@ class Dataset(object):
         self.test_ptr = 0
 
     def init_dict(self):
-        self.PAD = 'PAD'
+        self.PAD = '<PAD>'
+        self.UNK = '<UNK>'
         self.word2idx = {}
         self.idx2word = {}
         self.idx2vec = []  # pretrained
         self.word2idx[self.PAD] = 0
         self.idx2word[0] = self.PAD
+        self.word2idx[self.UNK] = 1
+        self.idx2word[1] = self.UNK
         self.init_word_dict = {}
     
     def update_word_dict(self, key):
-        if key not in self.word2idx:
-            self.word2idx[key] = len(self.word2idx)
-            self.idx2word[len(self.idx2word)] = key
+        self.word2idx[key] = len(self.word2idx)
+        self.idx2word[len(self.idx2word)] = key
 
     def map_dict(self, key_list, dictionary):
         output = []
@@ -103,53 +106,31 @@ class Dataset(object):
 
     def get_pretrained_word(self, path):
         print('\n### loading pretrained %s' % path)
-        word2vec = {}
-        # with gzip.open(path, "rt", encoding="utf8") as f:
-        #     # Read the remaining lines
-        #     for line in f: # traverse line in file descriptor f
-        #         # Remove line trailing newline
-        #         line = line.strip()
-        #         # Split into word string and vector string
-        #         # First space-separated column is the word string
-        #         first_space_pos = line.find(' ', 1)
-        #         word = line[:first_space_pos]
-        #         # Check if word is in word2idx, skip if not
-        #         if word not in word2idx:
-        #             continue
-        #         # Word index corresponds to the row in the embedding tensor
-        #         idx = word2idx[word]
-        #         # The remaining column is the vector string
-        #         emb_str = line[first_space_pos+1:].strip()
-        #         # Convert all vector strings into a list of floating point
-        #         emb = [float(t) for t in emb_str.split(' ')]
-        #         # Convert Python list into PyTorch tensor
-        #         embeddings[idx] = torch.tensor(emb)
+        word_cnt = 0
+        self.idx2vec.append([0.0] * self.config.word_embed_dim) # PAD
+        self.idx2vec.append(np.random.uniform(size=self.config.word_embed_dim).tolist()) # UNK
 
-        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-            while True:
+        with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
+            for line in f:
                 try:
-                    line = f.readline()
-                    if not line: break
-                    word = line.split()[0]
+                    line = line.strip()
+                    first_space_pos = line.find(' ', 1)   
+                    word = line[:first_space_pos]
+                    if self.config.word2vec_type == 6:
+                        word = word.lower()
+                    if word not in self.init_word_dict:    
+                        continue
+                    word_cnt += 1
                     vec = [float(l) for l in line.split()[1:]]
-                    word2vec[word] = vec
+                    if word not in self.word2idx:
+                        self.update_word_dict(word)
+                        self.idx2vec.append(vec)                 
                 except ValueError as e:
                     print(e)
         
-        unk_cnt = 0
-        self.idx2vec.append([0.0] * self.config.word_embed_dim) # PAD
-
-        for word, (word_idx, word_cnt) in self.init_word_dict.items():
-            if word != 'UNK' and word !='PAD':
-                assert word_cnt > 0
-                if word in word2vec:
-                    self.update_word_dict(word)
-                    self.idx2vec.append(word2vec[word])
-                else:
-                    unk_cnt += 1
-        print('apple:', self.word2idx['apple'], word2vec['apple'][:5])
+        print('apple:', self.word2idx['apple'])
         print('apple:', self.idx2vec[self.word2idx['apple']][:5])
-        print('pretrained vectors', np.asarray(self.idx2vec).shape, 'unk', unk_cnt)
+        print('pretrained vectors', np.asarray(self.idx2vec).shape, 'unk', len(self.init_word_dict) - word_cnt)
         print('dictionary change', len(self.init_word_dict), 
                 'to', len(self.word2idx), len(self.idx2word))
 
@@ -335,10 +316,10 @@ class Dataset(object):
 class Config(object):
     def __init__(self):
         user_home = expanduser('~')
-        self.data_dir = os.path.join(user_home, 'Documents/Masters/CS5246/Project/dmn-pytorch-develop/data/babi')
-        self.word2vec_type = 6  # 6 or 840 (B)
+        self.data_dir = os.path.join(user_home, 'datasets/babi/en-valid')
+        self.word2vec_type = 840  # 6 or 840 (B)
         self.word2vec_path = os.path.join(user_home, 
-            'Documents/Masters/CS5246/Project/dmn-pytorch-develop/data/glove.6B.300d.txt')
+            'datasets/glove/glove.%dB.300d.txt.gz' % self.word2vec_type)
         self.word_embed_dim = 300
         self.batch_size = 32
         self.max_sentnum = {}

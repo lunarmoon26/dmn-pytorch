@@ -141,14 +141,14 @@ class DMN(nn.Module):
         return selected, G.view(-1, self.config.max_sentnum[self.set_num] + 1)
 
     def answer_module(self, q_rep, memory):
-        y = F.softmax(self.out(memory))
+        y = F.softmax(self.out(memory), dim=1)
         a_rnn_h = memory
         ys = []
         #print('q_rep', q_rep[0,:])
         for step in range(self.config.max_alen):
             a_rnn_h = self.a_cell(torch.cat((y, q_rep), 1), a_rnn_h)
             z = self.out(a_rnn_h)
-            y = F.softmax(z)
+            y = F.softmax(z, dim=1)
             ys.append(z)
         ys = torch.transpose(torch.stack(ys), 0, 1).contiguous()
         """
