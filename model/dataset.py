@@ -108,7 +108,7 @@ class Dataset(object):
         print('\n### loading pretrained %s' % path)
         word_cnt = 0
         self.idx2vec.append([0.0] * self.config.word_embed_dim) # PAD
-        self.idx2vec.append(np.random.uniform(size=self.config.word_embed_dim).tolist()) # UNK
+        self.idx2vec.append(np.random.uniform(-0.25, 0.25, size=self.config.word_embed_dim).tolist()) # UNK
 
         with gzip.open(path, 'rt', encoding='utf-8', errors='ignore') as f:
             for line in f:
