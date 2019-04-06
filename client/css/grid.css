@@ -11,8 +11,8 @@
 
 .grid-cell{
      z-index:-1;
-     width:120px;
-     height:120px;
+     width:100px;
+     height:100px;
      border-radius:6px;
      background-color:#ccc0b3;
      position:absolute;
