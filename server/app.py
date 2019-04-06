@@ -6,13 +6,13 @@ https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.h
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
-import pickle as p
+import nltk
 import torch
 import argparse
 import pickle
 import pprint
-
-
+from model.dataset import Dataset, Config
+from torch.autograd import Variable
 
 from model.model import DMN
 
@@ -78,42 +78,38 @@ def default_answer(path):
 
 def load_model():
     try:
-        # model_file = "../model/model.pickle"
-        # model = p.load(open(model_file, "rb"))
-
-        print("-------- here1")
         args = get_model_args()
-        print("-------- here2")
         dataset = pickle.load(open(args.data_path, 'rb'))
-        print("-------- here3")
+
         dataset.config.__dict__.update(args.__dict__)
-        print("-------- here4")
         args.__dict__.update(dataset.config.__dict__)
-        print("-------- here5")
         pp = lambda x: pprint.PrettyPrinter().pprint(x)
         pp(args.__dict__)
-        print("-------- here6")
 
-        USE_CUDA = torch.cuda.is_available()
+        # USE_CUDA = torch.cuda.is_available()
+        USE_CUDA = False
         device = torch.device("cuda" if USE_CUDA else "cpu")
 
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
         m.load_checkpoint()
         m.eval()
-        print("-------- here7")
+
+        print("model loaded successful")
 
         return m
-    except:
-        print("exception")
+    except Exception as e:
+        print("model loaded failed")
+        print("exception:")
+        print(e)
         return None
 
 
 def get_model_args():
     argparser = argparse.ArgumentParser()
     # run settings
-    argparser.add_argument('--data_path', type=str, default='./data/babi(tmp).pkl')
+    argparser.add_argument('--data_path', type=str, default='../model/data/babi(tmp).pkl')
     argparser.add_argument('--model_name', type=str, default='m')
-    argparser.add_argument('--checkpoint_dir', type=str, default='./results/')
+    argparser.add_argument('--checkpoint_dir', type=str, default='../model/results/')
     argparser.add_argument('--batch_size', type=int, default=32)
     argparser.add_argument('--epoch', type=int, default=100)
     argparser.add_argument('--train', type=int, default=0)
@@ -149,13 +145,39 @@ def get_model_args():
     return args
 
 
+def map_dict(key_list, dictionary):
+    output = []
+    for key in key_list:
+        # assert key in dictionary
+        if key in dictionary:
+            output.append(dictionary[key])
+    return output
+
+
 if __name__ == "__main__":
     print("model loading ...")
     model = load_model()
-    print("model loaded ...")
 
-    # model.
-    # user_id -> input data list
+    stories = [
+        ["Fred picked up the football there"],
+        ["Fred gave the football to Jeff"]
+    ]
+
+    questions = [
+        ["What did Fred give to Jeff"]
+    ]
+
+    wrap_tensor = lambda x: torch.LongTensor(np.array(x))
+    wrap_var = lambda x: Variable(wrap_tensor(x))
+    stories = wrap_var(stories)
+    questions = wrap_var(questions)
+
+    s_lens = wrap_tensor(6)
+    q_lens = wrap_tensor(6)
+    e_lens = wrap_tensor(6)
+
+    x, y = model(stories, questions, s_lens, q_lens, e_lens)
+
     input_dict = {
         "dummy_id": ["data", "question"]
     }
