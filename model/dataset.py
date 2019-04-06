@@ -55,12 +55,17 @@ class Dataset(object):
             # assert key in dictionary
             if key in dictionary:
                 output.append(dictionary[key])
+            else:
+                output.append(dictionary[self.UNK])
         return output
     
     def build_word_dict(self, dir):
         print('### building word dict %s' % dir)
         for subdir, _, files, in os.walk(dir):
             for file in sorted(files):
+                set_type = file.split('_')[-1][:-4]
+                if self.config.allow_unk and (set_type == 'test' or set_type == 'valid'):
+                    continue
                 with open(os.path.join(subdir, file)) as f:
                     for line_idx, line in enumerate(f):
                         line = line[:-1]
@@ -316,7 +321,7 @@ class Dataset(object):
 class Config(object):
     def __init__(self):
         user_home = expanduser('~')
-        self.data_dir = os.path.join(user_home, 'datasets/babi/en-valid')
+        self.data_dir = os.path.join(user_home, 'datasets/babi/en-valid-10k')
         self.word2vec_type = 840  # 6 or 840 (B)
         self.word2vec_path = os.path.join(user_home, 
             'datasets/glove/glove.%dB.300d.txt.gz' % self.word2vec_type)
@@ -330,6 +335,7 @@ class Config(object):
         self.save_preprocess = True
         self.preprocess_save_path = './data/babi(tmp).pkl'
         self.preprocess_load_path = './data/babi(10k).pkl'
+        self.allow_unk = True # won't index words in test and valid dataset
 
 
 """
