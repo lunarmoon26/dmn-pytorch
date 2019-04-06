@@ -2,7 +2,8 @@
 Reference:
 https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.html
 """
-
+import sys
+sys.path.append("/home/p/pinzheng/cs5346/dmn-pytorch/model")
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
@@ -11,11 +12,11 @@ import torch
 import argparse
 import pickle
 import pprint
-from model.dataset import Dataset, Config
+from dataset import Dataset, Config
 from torch.autograd import Variable
 
-from model.model import DMN
-from model.run import run_epoch
+from model import DMN
+from run import run_epoch
 
 app = Flask(__name__)
 CORS(app)
@@ -92,7 +93,7 @@ def load_model():
         device = torch.device("cuda" if USE_CUDA else "cpu")
 
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
-        m.load_checkpoint()
+        #m.load_checkpoint()
         print("model loaded successful")
 
         return m, dataset
@@ -106,7 +107,7 @@ def load_model():
 def get_model_args():
     argparser = argparse.ArgumentParser()
     # run settings
-    argparser.add_argument('--data_path', type=str, default='../model/data/babi(tmp).pkl')
+    argparser.add_argument('--data_path', type=str, default='../data/babi(tmp).pkl')
     argparser.add_argument('--model_name', type=str, default='m')
     argparser.add_argument('--checkpoint_dir', type=str, default='../model/results/')
     argparser.add_argument('--batch_size', type=int, default=32)
@@ -158,9 +159,9 @@ if __name__ == "__main__":
     model, dataset = load_model()
 
     lines = [
-        "Fred picked up the football in the hall",
-        "Fred gave the football to Jeff",
-        "Where is the football?"
+        "Fred picked up the football in the hall.",
+        "Fred gave the football to Jeff.",
+        "Where is the football?	basketball 1"
     ]
     dataset.process_input(lines)
     run_epoch(model, dataset, 0, 'te', 0, False)
