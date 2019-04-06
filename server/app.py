@@ -15,6 +15,7 @@ from model.dataset import Dataset, Config
 from torch.autograd import Variable
 
 from model.model import DMN
+from model.run import run_epoch
 
 app = Flask(__name__)
 CORS(app)
@@ -92,16 +93,14 @@ def load_model():
 
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
         m.load_checkpoint()
-        m.eval()
-
         print("model loaded successful")
 
-        return m
+        return m, dataset
     except Exception as e:
         print("model loaded failed")
         print("exception:")
         print(e)
-        return None
+        return None, None
 
 
 def get_model_args():
@@ -113,7 +112,7 @@ def get_model_args():
     argparser.add_argument('--batch_size', type=int, default=32)
     argparser.add_argument('--epoch', type=int, default=100)
     argparser.add_argument('--train', type=int, default=0)
-    argparser.add_argument('--valid', type=int, default=0)
+    argparser.add_argument('--valid', type=int, default=1)
     argparser.add_argument('--test', type=int, default=1)
     argparser.add_argument('--early_stop', type=int, default=0)
     argparser.add_argument('--resume', action='store_true', default=False)
@@ -156,29 +155,15 @@ def map_dict(key_list, dictionary):
 
 if __name__ == "__main__":
     print("model loading ...")
-    model = load_model()
+    model, dataset = load_model()
 
-    stories = [
-        ["Fred picked up the football there"],
-        ["Fred gave the football to Jeff"]
+    lines = [
+        "Fred picked up the football in the hall",
+        "Fred gave the football to Jeff",
+        "Where is the football?"
     ]
+    dataset.process_input(lines)
+    run_epoch(model, dataset, 0, 'te', 0, False)
+    print()
 
-    questions = [
-        ["What did Fred give to Jeff"]
-    ]
-
-    wrap_tensor = lambda x: torch.LongTensor(np.array(x))
-    wrap_var = lambda x: Variable(wrap_tensor(x))
-    stories = wrap_var(stories)
-    questions = wrap_var(questions)
-
-    s_lens = wrap_tensor(6)
-    q_lens = wrap_tensor(6)
-    e_lens = wrap_tensor(6)
-
-    x, y = model(stories, questions, s_lens, q_lens, e_lens)
-
-    input_dict = {
-        "dummy_id": ["data", "question"]
-    }
-    app.run(debug=True, host="0.0.0.0")
+    # app.run(debug=True, host="0.0.0.0")

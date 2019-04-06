@@ -211,6 +211,63 @@ class Dataset(object):
         print('max slen', max_slen)
         print('max qlen', max_qlen, end='\n\n')
 
+    def process_input(self, lines):
+        print('\n### processing input')
+        max_sentnum = max_slen = max_qlen = 0
+        qa_num = 0
+        set_type = 'test'
+        story_list = []
+        sf_cnt = 1
+        si2sf = {}
+        total_data = []
+
+        for line_idx, line in enumerate(lines):
+            story_idx = line_idx + 1
+            if '?' in line: # question
+                question = line
+                answer = []
+                sup_fact = []
+                q_split = nltk.word_tokenize(question)
+                if self.config.word2vec_type == 6:
+                    q_split = [w.lower() for w in q_split]
+                q_split = self.map_dict(q_split, self.word2idx)
+
+                sentnum = story_list.count(self.word2idx['.'])
+                max_sentnum = max_sentnum if max_sentnum > sentnum \
+                        else sentnum
+                max_slen = max_slen if max_slen > len(story_list) \
+                        else len(story_list)
+                max_qlen = max_qlen if max_qlen > len(q_split) \
+                        else len(q_split)
+
+                story_tmp = story_list[:]
+                total_data.append([story_tmp, q_split, answer, sup_fact])
+
+            else: # story
+                story_line = line
+                s_split = nltk.word_tokenize(story_line)
+                if self.config.word2vec_type == 6:
+                    s_split = [w.lower() for w in s_split]
+                s_split = self.map_dict(s_split, self.word2idx)
+                story_list += s_split
+                si2sf[story_idx] = sf_cnt
+                sf_cnt += 1
+
+        self.dataset[str(qa_num) + '_' + set_type] = total_data
+        def check_update(d, k, v):
+            if k in d:
+                d[k] = v if v > d[k] else d[k]
+            else:
+                d[k] = v
+        check_update(self.config.max_sentnum, int(qa_num), max_sentnum)
+        check_update(self.config.max_slen, int(qa_num), max_slen)
+        check_update(self.config.max_qlen, int(qa_num), max_qlen)
+
+        print('data size', len(total_data))
+        print('max sentnum', max_sentnum)
+        print('max slen', max_slen)
+        print('max qlen', max_qlen, end='\n\n')
+
     def pad_sent_word(self, sentword, maxlen):
         while len(sentword) != maxlen:
             sentword.append(self.word2idx[self.PAD])
