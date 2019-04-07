@@ -16,16 +16,24 @@ PyTorch implementation of the paper, </br>
 
 ```bash
 # Preprocessing dataset. This will create ./data/babi(tmp).pkl
-$ python dataset.py
+$ python server/dataset.py
 ```
 
 ## Run experiments
 ```bash
 # Train and test with default settings
-$ python main.py
+$ python server/main.py
 
 # Train with different number of hidden units, epochs, and QA sets
-$ python main.py --s_rnn_hdim 200 --epoch 20 --set_num 5
+$ python server/main.py --s_rnn_hdim 200 --epoch 20 --set_num 5
+```
+
+## Run server
+```bash
+# Run server with default settings
+# This will load the dataset from ./data/babi(tmp).pkl
+# and load the model from ./results
+$ python server/app.py
 ```
 
 ## Model Overview
