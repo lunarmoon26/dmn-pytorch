@@ -18,5 +18,11 @@
 }
 
 #conversationLog {
-    height: 40vh;
+    height: 50vh;
 }
+
+#log-container {
+    margin:20px;
+}
+
+
