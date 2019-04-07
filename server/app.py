@@ -2,23 +2,29 @@
 Reference:
 https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.html
 """
-
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import numpy as np
-import nltk
-import torch
+import sys
 import argparse
 import pickle
 import pprint
-from model.dataset import Dataset, Config
-from torch.autograd import Variable
 
-from model.model import DMN
+import torch
+from torch.autograd import Variable
+import numpy as np
+import nltk
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+
+from dataset import Dataset, Config
+from model import DMN
+from run import run_epoch
+from config import get_default_args
+
+args = get_default_args()
+args.set_num = 0 # force set_num to be 0
 
 app = Flask(__name__)
 CORS(app)
-
+model_proxy = None
 
 @app.route("/api/ask", methods=["POST"])
 def ask():
@@ -74,111 +80,52 @@ def input_action():
 @app.route("/<path:path>")
 def default_answer(path):
     return "this address {} is not available".format(path)
+    
+class ModelProxy(object):
+    def __init__(self, model, dataset):
+        self.model = model
+        self.dataset = dataset
+    def predict(self, lines):
+        self.dataset.process_input(lines)
+        _, answers = run_epoch(self.model, self.dataset, 0, 'te', 0, False)
+        ans = [self.dataset.idx2word[an] for an in answers]
+        print(ans)
 
-
-def load_model():
+def init_model():
+    global model_proxy
     try:
-        args = get_model_args()
         dataset = pickle.load(open(args.data_path, 'rb'))
 
+        # Merge and update config pamameters
         dataset.config.__dict__.update(args.__dict__)
         args.__dict__.update(dataset.config.__dict__)
         pp = lambda x: pprint.PrettyPrinter().pprint(x)
         pp(args.__dict__)
 
-        # USE_CUDA = torch.cuda.is_available()
-        USE_CUDA = False
+        # Use CUDA or CPU
+        USE_CUDA = torch.cuda.is_available()
         device = torch.device("cuda" if USE_CUDA else "cpu")
 
+        # Init proxy
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
-        m.load_checkpoint()
-        m.eval()
-
+        # m.load_checkpoint()
+        model_proxy = ModelProxy(m, dataset)
         print("model loaded successful")
-
-        return m
     except Exception as e:
         print("model loaded failed")
         print("exception:")
         print(e)
-        return None
-
-
-def get_model_args():
-    argparser = argparse.ArgumentParser()
-    # run settings
-    argparser.add_argument('--data_path', type=str, default='../model/data/babi(tmp).pkl')
-    argparser.add_argument('--model_name', type=str, default='m')
-    argparser.add_argument('--checkpoint_dir', type=str, default='../model/results/')
-    argparser.add_argument('--batch_size', type=int, default=32)
-    argparser.add_argument('--epoch', type=int, default=100)
-    argparser.add_argument('--train', type=int, default=0)
-    argparser.add_argument('--valid', type=int, default=0)
-    argparser.add_argument('--test', type=int, default=1)
-    argparser.add_argument('--early_stop', type=int, default=0)
-    argparser.add_argument('--resume', action='store_true', default=False)
-    argparser.add_argument('--save', action='store_true', default=False)
-    argparser.add_argument('--print_step', type=float, default=128)
-
-    # model hyperparameters
-    argparser.add_argument('--lr', type=float, default=0.0003)
-    argparser.add_argument('--lr_decay', type=float, default=1.0)
-    argparser.add_argument('--wd', type=float, default=0)
-    argparser.add_argument('--grad_max_norm', type=int, default=5)
-    argparser.add_argument('--s_rnn_hdim', type=int, default=100)
-    argparser.add_argument('--s_rnn_ln', type=int, default=1)
-    argparser.add_argument('--s_rnn_dr', type=float, default=0.0)
-    argparser.add_argument('--q_rnn_hdim', type=int, default=100)
-    argparser.add_argument('--q_rnn_ln', type=int, default=1)
-    argparser.add_argument('--q_rnn_dr', type=float, default=0.0)
-    argparser.add_argument('--e_cell_hdim', type=int, default=100)
-    argparser.add_argument('--m_cell_hdim', type=int, default=100)
-    argparser.add_argument('--a_cell_hdim', type=int, default=100)
-    argparser.add_argument('--word_dr', type=float, default=0.2)
-    argparser.add_argument('--g1_dim', type=int, default=500)
-    argparser.add_argument('--max_episode', type=int, default=10)
-    argparser.add_argument('--beta_cnt', type=int, default=10)
-    argparser.add_argument('--set_num', type=int, default=1)
-    argparser.add_argument('--max_alen', type=int, default=2)
-    args = argparser.parse_args()
-
-    return args
-
-
-def map_dict(key_list, dictionary):
-    output = []
-    for key in key_list:
-        # assert key in dictionary
-        if key in dictionary:
-            output.append(dictionary[key])
-    return output
-
 
 if __name__ == "__main__":
     print("model loading ...")
-    model = load_model()
+    init_model()
 
-    stories = [
-        ["Fred picked up the football there"],
-        ["Fred gave the football to Jeff"]
+    lines = [
+        "Fred picked up the football in the hall.",
+        "Fred gave the football to Jeff.",
+        "Where is the football?"
     ]
 
-    questions = [
-        ["What did Fred give to Jeff"]
-    ]
-
-    wrap_tensor = lambda x: torch.LongTensor(np.array(x))
-    wrap_var = lambda x: Variable(wrap_tensor(x))
-    stories = wrap_var(stories)
-    questions = wrap_var(questions)
-
-    s_lens = wrap_tensor(6)
-    q_lens = wrap_tensor(6)
-    e_lens = wrap_tensor(6)
-
-    x, y = model(stories, questions, s_lens, q_lens, e_lens)
-
-    input_dict = {
-        "dummy_id": ["data", "question"]
-    }
-    app.run(debug=True, host="0.0.0.0")
+    if model_proxy:
+        model_proxy.predict(lines)
+    # app.run(debug=True, host="0.0.0.0")
