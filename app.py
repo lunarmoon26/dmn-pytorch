@@ -3,7 +3,7 @@ Reference:
 https://www.kdnuggets.com/2019/01/build-api-machine-learning-model-using-flask.html
 """
 import sys
-sys.path.append("/home/p/pinzheng/cs5346/dmn-pytorch/model")
+# sys.path.append("/home/p/pinzheng/cs5346/dmn-pytorch/model")
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import numpy as np
@@ -12,11 +12,11 @@ import torch
 import argparse
 import pickle
 import pprint
-from dataset import Dataset, Config
 from torch.autograd import Variable
 
-from model import DMN
-from run import run_epoch
+from model.dataset import Dataset, Config
+from model.model import DMN
+from model.run import run_epoch
 
 app = Flask(__name__)
 CORS(app)
@@ -88,8 +88,7 @@ def load_model():
         pp = lambda x: pprint.PrettyPrinter().pprint(x)
         pp(args.__dict__)
 
-        # USE_CUDA = torch.cuda.is_available()
-        USE_CUDA = False
+        USE_CUDA = torch.cuda.is_available()
         device = torch.device("cuda" if USE_CUDA else "cpu")
 
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
@@ -107,9 +106,9 @@ def load_model():
 def get_model_args():
     argparser = argparse.ArgumentParser()
     # run settings
-    argparser.add_argument('--data_path', type=str, default='../data/babi(tmp).pkl')
+    argparser.add_argument('--data_path', type=str, default='./data/babi(tmp).pkl')
     argparser.add_argument('--model_name', type=str, default='m')
-    argparser.add_argument('--checkpoint_dir', type=str, default='../model/results/')
+    argparser.add_argument('--checkpoint_dir', type=str, default='./model/results/')
     argparser.add_argument('--batch_size', type=int, default=32)
     argparser.add_argument('--epoch', type=int, default=100)
     argparser.add_argument('--train', type=int, default=0)
@@ -138,7 +137,7 @@ def get_model_args():
     argparser.add_argument('--g1_dim', type=int, default=500)
     argparser.add_argument('--max_episode', type=int, default=10)
     argparser.add_argument('--beta_cnt', type=int, default=10)
-    argparser.add_argument('--set_num', type=int, default=1)
+    argparser.add_argument('--set_num', type=int, default=0)
     argparser.add_argument('--max_alen', type=int, default=2)
     args = argparser.parse_args()
 
@@ -161,10 +160,11 @@ if __name__ == "__main__":
     lines = [
         "Fred picked up the football in the hall.",
         "Fred gave the football to Jeff.",
-        "Where is the football?	basketball 1"
+        "Where is the football?"
     ]
     dataset.process_input(lines)
-    run_epoch(model, dataset, 0, 'te', 0, False)
-    print()
+    _, answers = run_epoch(model, dataset, 0, 'te', 0, False)
+    ans = [dataset.idx2word[an] for an in answers]
+    print(ans)
 
     # app.run(debug=True, host="0.0.0.0")

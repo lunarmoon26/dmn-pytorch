@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import sys
 import numpy as np
-from utils import progress
+from model.utils import progress
 from torch.autograd import Variable
 from datetime import datetime
 
@@ -17,6 +17,8 @@ def run_epoch(m, d, ep, mode='tr', set_num=1, is_train=True):
 
     USE_CUDA = torch.cuda.is_available()
     device = torch.device("cuda" if USE_CUDA else "cpu")
+
+    total_outputs = []
 
     while True:
         m.optimizer.zero_grad()
@@ -38,27 +40,33 @@ def run_epoch(m, d, ep, mode='tr', set_num=1, is_train=True):
         else:
             m.eval()
         outputs, gates = m(stories, questions, s_lens, q_lens, e_lens)
-        a_loss = m.criterion(outputs[:, 0, :], answers[:, 0])
-        if answers.size(1) > 1:  # multiple answer
-            for ans_idx in range(m.config.max_alen):
-                a_loss += m.criterion(outputs[:, ans_idx, :], answers[:, ans_idx])
-        for episode in range(5):
-            if episode == 0:
-                g_loss = m.criterion(gates[:, episode, :], sup_facts[:, episode])
-            else:
-                g_loss += m.criterion(gates[:, episode, :], sup_facts[:, episode])
-        beta = 0 if ep < m.config.beta_cnt and mode == 'tr' else 1
-        alpha = 1
-        metrics = m.get_metrics(outputs, answers, multiple=answers.size(1) > 1)
-        total_loss = alpha * g_loss + beta * a_loss
+        if set_num > 0:
+            a_loss = m.criterion(outputs[:, 0, :], answers[:, 0])
+            if answers.size(1) > 1:  # multiple answer
+                for ans_idx in range(m.config.max_alen):
+                    a_loss += m.criterion(outputs[:, ans_idx, :], answers[:, ans_idx])
+            for episode in range(m.config.max_episode):
+                if episode == 0:
+                    g_loss = m.criterion(gates[:, episode, :], sup_facts[:, episode])
+                else:
+                    g_loss += m.criterion(gates[:, episode, :], sup_facts[:, episode])
+            beta = 0 if ep < m.config.beta_cnt and mode == 'tr' else 1
+            alpha = 1
+            metrics = m.get_metrics(outputs, answers, multiple=answers.size(1) > 1)
+            total_loss = alpha * g_loss + beta * a_loss
 
-        if is_train:
-            total_loss.backward()
-            nn.utils.clip_grad_norm(m.parameters(), m.config.grad_max_norm)
-            m.optimizer.step()
+            if is_train:
+                total_loss.backward()
+                nn.utils.clip_grad_norm(m.parameters(), m.config.grad_max_norm)
+                m.optimizer.step()
 
-        total_metrics[0] += total_loss.item()
-        total_metrics[1] += metrics
+            total_metrics[0] += total_loss.item()
+            total_metrics[1] += metrics
+        else:
+            # max_idx = torch.max(outputs[:,0,:], 1)[1].data.cpu().numpy()
+            outputs_topk = torch.topk(outputs[:,0,:], 3)[1].data.cpu().numpy()
+            total_outputs += [tk[0] for tk in outputs_topk]
+
         total_step += 1.0
 
         # print step
@@ -82,4 +90,4 @@ def run_epoch(m, d, ep, mode='tr', set_num=1, is_train=True):
                                                              for k in total_metrics / total_step])))
                 break
 
-    return total_metrics / total_step
+    return total_metrics / total_step, total_outputs

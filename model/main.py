@@ -62,7 +62,7 @@ def run_experiment(model, dataset, set_num):
 
             if model.config.valid:
                 print('- Validation')
-                met = run_epoch(model, dataset, ep, 'va', set_num, False)
+                met, _ = run_epoch(model, dataset, ep, 'va', set_num, False)
                 if best_metric[1] < met[1]:
                     best_metric = met
                     model.save_checkpoint({
