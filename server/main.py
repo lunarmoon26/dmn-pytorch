@@ -26,12 +26,12 @@ def run_experiment(model, dataset, set_num):
             if early_stop:
                 break
             print('- Training Epoch %d' % (ep+1))
-            tr_met = run_epoch(model, dataset, ep, 'tr', set_num)
+            tr_met,_ = run_epoch(model, dataset, ep, 'tr', set_num)
             writer.add_scalar('Train/Loss', tr_met[0], ep+1) 
             writer.add_scalar('Train/Accuracy', tr_met[1], ep+1) 
             if model.config.valid:
                 print('- Validation')
-                val_met = run_epoch(model, dataset, ep, 'va', set_num, False)
+                val_met,_ = run_epoch(model, dataset, ep, 'va', set_num, False)
                 writer.add_scalar('Validation/Loss', val_met[0], ep+1) 
                 writer.add_scalar('Validation/Accuracy', val_met[1], ep+1) 
                 if best_metric[1] < val_met[1]:
@@ -52,7 +52,7 @@ def run_experiment(model, dataset, set_num):
 
             if model.config.test:
                 print('- Testing')
-                test_met = run_epoch(model, dataset, ep, 'te', set_num, False)
+                test_met,_ = run_epoch(model, dataset, ep, 'te', set_num, False)
                 writer.add_scalar('Test/Loss', test_met[0], ep+1) 
                 writer.add_scalar('Test/Accuracy', test_met[1], ep+1) 
             print()
