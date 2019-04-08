@@ -8,10 +8,14 @@ from dataset import Dataset, Config
 from model import DMN
 from run import run_epoch
 from config import get_default_args
+import datetime
+from tensorboardX import SummaryWriter
 
 args = get_default_args()
 
 def run_experiment(model, dataset, set_num):
+    writer = SummaryWriter('tensorboard')
+
     best_metric = np.zeros(2)
     early_stop = False
     if model.config.train:
@@ -22,13 +26,16 @@ def run_experiment(model, dataset, set_num):
             if early_stop:
                 break
             print('- Training Epoch %d' % (ep+1))
-            run_epoch(model, dataset, ep, 'tr', set_num)
-
+            tr_met,_ = run_epoch(model, dataset, ep, 'tr', set_num)
+            writer.add_scalar('Train/Loss', tr_met[0], ep+1) 
+            writer.add_scalar('Train/Accuracy', tr_met[1], ep+1) 
             if model.config.valid:
                 print('- Validation')
-                met, _ = run_epoch(model, dataset, ep, 'va', set_num, False)
-                if best_metric[1] < met[1]:
-                    best_metric = met
+                val_met,_ = run_epoch(model, dataset, ep, 'va', set_num, False)
+                writer.add_scalar('Validation/Loss', val_met[0], ep+1) 
+                writer.add_scalar('Validation/Accuracy', val_met[1], ep+1) 
+                if best_metric[1] < val_met[1]:
+                    best_metric = val_met
                     model.save_checkpoint({
                         'config': model.config,
                         'state_dict': model.state_dict(),
@@ -45,7 +52,9 @@ def run_experiment(model, dataset, set_num):
 
             if model.config.test:
                 print('- Testing')
-                run_epoch(model, dataset, ep, 'te', set_num, False)
+                test_met,_ = run_epoch(model, dataset, ep, 'te', set_num, False)
+                writer.add_scalar('Test/Loss', test_met[0], ep+1) 
+                writer.add_scalar('Test/Accuracy', test_met[1], ep+1) 
             print()
     
     if model.config.test:
