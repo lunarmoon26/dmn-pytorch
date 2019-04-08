@@ -213,6 +213,7 @@ class Dataset(object):
 
     def process_input(self, lines):
         print('\n### processing input')
+        self.config.max_sentnum[0] = self.config.max_slen[0] = self.config.max_qlen[0] = 0
         max_sentnum = max_slen = max_qlen = 0
         qa_num = 0
         set_type = 'test'

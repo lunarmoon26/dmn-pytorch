@@ -23,10 +23,29 @@ args = get_default_args()
 args.set_num = 0 # force set_num to be 0
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 model_proxy = None
 
-@app.route("/api/ask", methods=["POST"])
+@app.route("/api/v1/solve", methods=["POST"])
+def solve():
+    """
+    {
+        "lines": "string[]",
+    }
+    """
+    global model_proxy
+    json_data = request.get_json(force=True) 
+    if model_proxy:
+        ans = model_proxy.predict(json_data['lines'])
+        prediction = " ".join(ans)
+        print(ans)
+    else:
+        prediction = "no module is available"
+
+    resp = jsonify({"answer": prediction})
+    return resp
+
+@app.route("/api/v1/ask", methods=["POST"])
 def ask():
     """
     {
@@ -54,7 +73,7 @@ def ask():
     return resp
 
 
-@app.route("/api/action", methods=["POST"])
+@app.route("/api/v1/action", methods=["POST"])
 def input_action():
     """
     {
@@ -88,8 +107,7 @@ class ModelProxy(object):
     def predict(self, lines):
         self.dataset.process_input(lines)
         _, answers = run_epoch(self.model, self.dataset, 0, 'te', 0, False)
-        ans = [self.dataset.idx2word[an] for an in answers]
-        print(ans)
+        return [self.dataset.idx2word[an] for an in answers]
 
 def init_model():
     global model_proxy
@@ -108,7 +126,7 @@ def init_model():
 
         # Init proxy
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
-        # m.load_checkpoint()
+        m.load_checkpoint("m5.pth")
         model_proxy = ModelProxy(m, dataset)
         print("model loaded successful")
     except Exception as e:
@@ -120,12 +138,16 @@ if __name__ == "__main__":
     print("model loading ...")
     init_model()
 
-    lines = [
-        "Fred picked up the football in the hall.",
-        "Fred gave the football to Jeff.",
-        "Where is the football?"
-    ]
+    # lines = [
+    #     "Fred picked up the football there.",
+    #     "Fred gave the football to Jeff.",
+    #     "What did Fred give to Jeff?"
+    #     "Bill went back to the bathroom.",
+    #     "Jeff grabbed the milk there.",
+    #     "Who gave the football to Jeff?"
+    # ]
 
-    if model_proxy:
-        model_proxy.predict(lines)
-    # app.run(debug=True, host="0.0.0.0")
+    # if model_proxy:
+    #     ans = model_proxy.predict(lines)
+    #     print(ans)
+    app.run(debug=True, host="0.0.0.0")
