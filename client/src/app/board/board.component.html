@@ -1,0 +1,44 @@
+<div class="container">
+  <div class="mat-display-1 my-4">Where is my key?</div>
+  <!-- <section class="cover">
+    <img src="assets/cover_lg.jpg" alt="" />
+  </section> -->
+  <section class="game">
+    <div
+      appGame
+      class="game-board mr-4"
+      (sendMessage)="onMessageSent($event)"
+    ></div>
+    <div class="game-message">
+      <form (ngSubmit)="onSubmit(f)" #f="ngForm">
+        <mat-form-field appearance="outline" class="w-100">
+          <textarea
+            matInput
+            placeholder="Event Logs..."
+            disabled
+            rows="15"
+            [value]="eventLogsText"
+          ></textarea>
+          <mat-icon matSuffix>bubble_chart</mat-icon>
+          <!-- <mat-hint>Hint</mat-hint> -->
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Question</mat-label>
+          <input matInput placeholder='Type a question end with "?"' name="question" [(ngModel)]="question" #questionInput="ngModel"/>
+          <button type="button" mat-icon-button matSuffix (click)="postQuestion(questionInput.value)">
+            <mat-icon aria-label="Example icon-button with a heart icon"
+              >queue</mat-icon
+            >
+          </button>
+        </mat-form-field>
+
+        <div style="display:flex;flex-direction: row-reverse">
+          <button type="submit" mat-raised-button color="primary">
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>
