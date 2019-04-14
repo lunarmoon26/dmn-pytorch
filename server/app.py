@@ -126,7 +126,7 @@ def init_model():
 
         # Init proxy
         m = DMN(args, dataset.idx2vec, args.set_num).to(device)
-        m.load_checkpoint("m5.pth")
+        m.load_checkpoint()
         model_proxy = ModelProxy(m, dataset)
         print("model loaded successful")
     except Exception as e:

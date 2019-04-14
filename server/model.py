@@ -32,7 +32,7 @@ class DMN(nn.Module):
         # rnn layers
         self.s_rnn = nn.GRU(self.s_rnn_idim, config.s_rnn_hdim, batch_first=True)
         self.q_rnn = nn.GRU(self.q_rnn_idim, config.q_rnn_hdim, batch_first=True)
-        self.e_cell = nn.LSTMCell(self.e_cell_idim, config.e_cell_hdim)
+        self.e_cell = nn.GRUCell(self.e_cell_idim, config.e_cell_hdim)
         self.m_cell = nn.GRUCell(self.m_cell_idim, config.m_cell_hdim)
         self.a_cell = nn.GRUCell(self.a_cell_idim, config.a_cell_hdim)
 
@@ -132,13 +132,11 @@ class DMN(nn.Module):
         # print('g', G.size())
 
         e_rnn_h = self.init_cell_h(s_rep.size(1))
-        e_rnn_c = self.init_cell_h(s_rep.size(1))
         # print('input', s_rep.size())
         # print('hidden', e_rnn_h.size())
         hiddens = []
         for step, (gg, ss) in enumerate(zip(G_s, s_rep)):
-            e_rnn_h1, _ = self.e_cell(ss, (e_rnn_h, e_rnn_c))
-            e_rnn_h = gg * e_rnn_h1 + (1 - gg) * e_rnn_h
+            e_rnn_h = gg * self.e_cell(ss, e_rnn_h) + (1 - gg) * e_rnn_h
             hiddens.append(e_rnn_h)
         hiddens = torch.transpose(torch.stack(hiddens), 0, 1).contiguous().view(
                 -1, self.config.e_cell_hdim).cpu()
