@@ -73,7 +73,7 @@ export class GameDirective implements OnInit, OnDestroy {
     this.app.stage.addChild(map);
     this.rightBound = map.x + map.width - 42.5;
     this.leftBound = map.x + 42.5;
-    this.upperBound = map.y + 32;
+    this.upperBound = map.y + UNIT;
     this.lowerBound = map.y + map.height - 48;
   }
   setupObjects() {
@@ -91,7 +91,7 @@ export class GameDirective implements OnInit, OnDestroy {
     if (to === 2 || (from === 0 && to === 1)) {
       this.player.y = map.y + map.height - 42.5;
     } else {
-      this.player.y = 32;
+      this.player.y = UNIT;
     }
     this.app.stage.addChild(this.player);
   }
@@ -136,9 +136,28 @@ export class GameDirective implements OnInit, OnDestroy {
     kitchDoor.position.set(32, 224);
     const kitchDoorTrigger = new PIXI.Graphics();
     kitchDoorTrigger.beginFill(DEBUG_COLOR, DEBUG_ALPHA);
-    kitchDoorTrigger.drawRect(kitchDoor.x, kitchDoor.y - 32, 32, 32);
-    this.doors[2] = [new PIXI.Rectangle(kitchDoor.x, kitchDoor.y - 32, 32, 32)];
-    this.maps[2].addChild(kitch1, kitch2, kitch3, kitchDoor, kitchDoorTrigger);
+    kitchDoorTrigger.drawRect(kitchDoor.x, kitchDoor.y - UNIT, UNIT, UNIT);
+    this.doors[2] = [
+      new PIXI.Rectangle(kitchDoor.x, kitchDoor.y - UNIT, UNIT, UNIT)
+    ];
+
+    const kitchText = new PIXI.Text('Kitchen', {
+      fontFamily: 'Arial',
+      fontSize: 48,
+      fill: 0x0F0F0F,
+      align: 'center'
+    });
+    // kitchText.anchor.set(0.5, 0.5);
+    kitchText.position.set(UNIT, UNIT);
+    kitchText.alpha = 0.5;
+    this.maps[2].addChild(
+      kitch1,
+      kitch2,
+      kitch3,
+      kitchDoor,
+      kitchDoorTrigger,
+      kitchText
+    );
 
     this.maps[0] = new PIXI.Container();
     const dungeon = new PIXI.Sprite(
@@ -152,11 +171,26 @@ export class GameDirective implements OnInit, OnDestroy {
     officeDoor.position.set(32, 0);
     const officeDoorTrigger = new PIXI.Graphics();
     officeDoorTrigger.beginFill(DEBUG_COLOR, DEBUG_ALPHA);
-    officeDoorTrigger.drawRect(officeDoor.x, officeDoor.y + 16, 32, 32);
+    officeDoorTrigger.drawRect(
+      officeDoor.x,
+      officeDoor.y + UNIT / 2,
+      UNIT,
+      UNIT
+    );
     this.doors[0] = [
-      new PIXI.Rectangle(officeDoor.x, officeDoor.y + 16, 32, 32)
+      new PIXI.Rectangle(officeDoor.x, officeDoor.y + UNIT / 2, UNIT, UNIT)
     ];
-    this.maps[0].addChild(dungeon, officeDoor, officeDoorTrigger);
+    const officeText = new PIXI.Text('Office', {
+      fontFamily: 'Arial',
+      fontSize: 72,
+      fill: 0x0f0f0f,
+      align: 'center'
+    });
+    officeText.pivot.set(0.5, 0.5);
+    // kitchText.anchor.set(0.5, 0.5);
+    officeText.position.set(UNIT, UNIT);
+    officeText.alpha = 0.5;
+    this.maps[0].addChild(dungeon, officeDoor, officeDoorTrigger, officeText);
 
     this.maps[1] = new PIXI.Container();
     const hallway1 = new PIXI.Sprite(
@@ -180,21 +214,43 @@ export class GameDirective implements OnInit, OnDestroy {
     hallwayDoor2.position.set(32, 480);
     const hallwayDoor1Trigger = new PIXI.Graphics();
     hallwayDoor1Trigger.beginFill(DEBUG_COLOR, DEBUG_ALPHA);
-    hallwayDoor1Trigger.drawRect(hallwayDoor1.x, hallwayDoor1.y + 16, 32, 32);
+    hallwayDoor1Trigger.drawRect(
+      hallwayDoor1.x,
+      hallwayDoor1.y + UNIT / 2,
+      UNIT,
+      UNIT
+    );
     const hallwayDoor2Trigger = new PIXI.Graphics();
     hallwayDoor2Trigger.beginFill(DEBUG_COLOR, DEBUG_ALPHA);
-    hallwayDoor2Trigger.drawRect(hallwayDoor2.x, hallwayDoor2.y - 32, 32, 32);
+    hallwayDoor2Trigger.drawRect(
+      hallwayDoor2.x,
+      hallwayDoor2.y - UNIT,
+      UNIT,
+      UNIT
+    );
     this.doors[1] = [
-      new PIXI.Rectangle(hallwayDoor1.x, hallwayDoor1.y + 16, 32, 32),
-      new PIXI.Rectangle(hallwayDoor2.x, hallwayDoor2.y - 32, 32, 32)
+      new PIXI.Rectangle(hallwayDoor1.x, hallwayDoor1.y + UNIT / 2, UNIT, UNIT),
+      new PIXI.Rectangle(hallwayDoor2.x, hallwayDoor2.y - UNIT, UNIT, UNIT)
     ];
+    const hallwayText = new PIXI.Text('Hallway', {
+      fontFamily: 'Arial',
+      fontSize: 64,
+      fill: 0x0f0f0f,
+      align: 'center'
+    });
+    hallwayText.pivot.set(0, hallwayText.height);
+    hallwayText.rotation = Math.PI / 2;
+    hallwayText.alpha = 0.5;
+    // kitchText.anchor.set(0.5, 0.5);
+    hallwayText.position.set(UNIT, UNIT);
     this.maps[1].addChild(
       hallway1,
       hallway2,
       hallwayDoor1,
       hallwayDoor2,
       hallwayDoor1Trigger,
-      hallwayDoor2Trigger
+      hallwayDoor2Trigger,
+      hallwayText
     );
 
     this.treasure = new PIXI.Sprite(
@@ -356,7 +412,9 @@ export class GameDirective implements OnInit, OnDestroy {
         this.currentRoom = target;
         this.shouldSwitch = true;
         const roomNameDict = ['office', 'hallway', 'kitchen'];
-        this.sendMessage.emit(`Jeff ${this.randomTravel()} to the ${roomNameDict[target]}.`);
+        this.sendMessage.emit(
+          `Jeff ${this.randomTravel()} to the ${roomNameDict[target]}.`
+        );
       }
     };
   }
