@@ -341,11 +341,11 @@ export class GameDirective implements OnInit, OnDestroy {
       if (!this.pickedUp && this.canPickUp) {
         this.pickedUp = true;
         this.treasureAt = -1;
-        this.sendMessage.emit('Jeff picked up the box there.');
+        this.sendMessage.emit(`Jeff ${this.randomPickUp()} the apple there.`);
       } else if (this.pickedUp) {
         this.pickedUp = false;
         this.treasureAt = this.currentRoom;
-        this.sendMessage.emit('Jeff dropped the box there.');
+        this.sendMessage.emit(`Jeff ${this.randomDrop()} the apple.`);
       }
     };
 
@@ -355,12 +355,8 @@ export class GameDirective implements OnInit, OnDestroy {
         this.previousRoom = this.currentRoom;
         this.currentRoom = target;
         this.shouldSwitch = true;
-
-        // const textArray = ['travelled to', 'moved to', 'went to'];
-        // const randomNumber = Math.floor(Math.random() * textArray.length);
-        // const roomNameDict = ['office', 'hallway', 'kitchen'];
-
-        // this.sendMessage.emit(`Jeff ${textArray[randomNumber]} the ${roomNameDict[target]}.`);
+        const roomNameDict = ['office', 'hallway', 'kitchen'];
+        this.sendMessage.emit(`Jeff ${this.randomTravel()} to the ${roomNameDict[target]}.`);
       }
     };
   }
@@ -398,13 +394,13 @@ export class GameDirective implements OnInit, OnDestroy {
     const downListener = key.downHandler.bind(key);
     const upListener = key.upHandler.bind(key);
 
-    window.addEventListener('keydown', downListener, false);
-    window.addEventListener('keyup', upListener, false);
+    this.el.nativeElement.addEventListener('keydown', downListener, false);
+    this.el.nativeElement.addEventListener('keyup', upListener, false);
 
     // Detach event listeners
     key.unsubscribe = () => {
-      window.removeEventListener('keydown', downListener);
-      window.removeEventListener('keyup', upListener);
+      this.el.nativeElement.removeEventListener('keydown', downListener);
+      this.el.nativeElement.removeEventListener('keyup', upListener);
     };
 
     return key;
@@ -422,5 +418,23 @@ export class GameDirective implements OnInit, OnDestroy {
     return (
       o.x >= r.x && o.x <= r.x + r.width && o.y >= r.y && o.y <= r.y + r.height
     );
+  }
+
+  randomTravel() {
+    const textArray = ['travelled', 'moved', 'journeyed'];
+    const randomNumber = Math.floor(Math.random() * textArray.length);
+    return textArray[randomNumber];
+  }
+
+  randomPickUp() {
+    const textArray = ['grabbed', 'picked up', 'took'];
+    const randomNumber = Math.floor(Math.random() * textArray.length);
+    return textArray[randomNumber];
+  }
+
+  randomDrop() {
+    const textArray = ['dropped', 'put down', 'discarded'];
+    const randomNumber = Math.floor(Math.random() * textArray.length);
+    return textArray[randomNumber];
   }
 }

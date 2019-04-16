@@ -3,8 +3,12 @@
   <!-- <section class="cover">
     <img src="assets/cover_lg.jpg" alt="" />
   </section> -->
+  <section>
+    <div class="mat-h1">Using <code>W, S, A, D</code> to control moving, <code>E</code> to lifting/dropping and <code>Space</code> to open doors</div>
+  </section>
   <section class="game">
     <div
+      tabindex="-1"
       appGame
       class="game-board mr-4"
       (sendMessage)="onMessageSent($event)"
@@ -25,8 +29,19 @@
 
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Question</mat-label>
-          <input matInput placeholder='Type a question end with "?"' name="question" [(ngModel)]="question" #questionInput="ngModel"/>
-          <button type="button" mat-icon-button matSuffix (click)="postQuestion(questionInput.value)">
+          <input
+            matInput
+            placeholder='Type a question end with "?"'
+            name="question"
+            [(ngModel)]="question"
+            #questionInput="ngModel"
+          />
+          <button
+            type="button"
+            mat-icon-button
+            matSuffix
+            (click)="postQuestion(questionInput.value)"
+          >
             <mat-icon aria-label="Example icon-button with a heart icon"
               >queue</mat-icon
             >
