@@ -37,8 +37,8 @@ class DMN(nn.Module):
         self.a_cell = nn.GRUCell(self.a_cell_idim, config.a_cell_hdim)
 
         # cnn layers
-        self.s_cnn = nn.Conv1d(config.max_slen[set_num], config.word_embed_dim, config.s_cnn_k, padding=config.s_cnn_k//2)
-        self.q_cnn = nn.Conv1d(config.max_qlen[set_num], config.word_embed_dim, config.q_cnn_k, padding=config.q_cnn_k//2)
+        # self.s_cnn = nn.Conv1d(config.max_slen[set_num], config.word_embed_dim, config.s_cnn_k, padding=config.s_cnn_k//2)
+        # self.q_cnn = nn.Conv1d(config.max_qlen[set_num], config.word_embed_dim, config.q_cnn_k, padding=config.q_cnn_k//2)
 
         # linear layers
         # self.z_sq = nn.Linear(config.s_rnn_hdim, config.q_rnn_hdim, bias=False)
@@ -86,7 +86,7 @@ class DMN(nn.Module):
 
     def input_module(self, stories, s_lens):
         word_embed = F.dropout(self.word_embed(stories), self.config.word_dr)
-        word_embed = self.s_cnn(word_embed)
+        # word_embed = self.s_cnn(word_embed)
         init_s_rnn_h = self.init_rnn_h(stories.size(0))
         gru_out, _ = self.s_rnn(word_embed, init_s_rnn_h)
         gru_out = gru_out.contiguous().view(-1, self.config.s_rnn_hdim).cpu()
@@ -99,7 +99,7 @@ class DMN(nn.Module):
 
     def question_module(self, questions, q_lens):
         word_embed = F.dropout(self.word_embed(questions), self.config.word_dr)
-        word_embed = self.q_cnn(word_embed)
+        # word_embed = self.q_cnn(word_embed)
         init_q_rnn_h = self.init_rnn_h(questions.size(0))
         gru_out, _ = self.q_rnn(word_embed, init_q_rnn_h)
         gru_out = gru_out.contiguous().view(-1, self.config.q_rnn_hdim).cpu()
