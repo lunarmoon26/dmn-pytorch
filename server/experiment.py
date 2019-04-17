@@ -7,7 +7,7 @@ import os
 import datetime
 from dataset import Dataset, Config
 from model import DMN
-from run import run_epoch
+from epoch import run_epoch
 from config import get_default_args
 from tensorboardX import SummaryWriter
 
