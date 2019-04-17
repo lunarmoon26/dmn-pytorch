@@ -21,7 +21,9 @@ export class BoardComponent implements OnInit {
 
   onSubmit(f: NgForm) {
     this.apiService.postLines(this.eventLogs).subscribe(response => {
-      this.answer = response;
+      if (response) {
+        this.answer = response['answer'];
+      }
     });
   }
 
