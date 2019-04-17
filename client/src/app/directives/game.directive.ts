@@ -26,6 +26,7 @@ export class GameDirective implements OnInit, OnDestroy {
   private doors = {};
   private player;
   private npc;
+  private npc1;
   private treasure;
   private treasureAt = 0;
   private rightBound = 0;
@@ -88,6 +89,10 @@ export class GameDirective implements OnInit, OnDestroy {
 
     if (to === 2) {
       this.app.stage.addChild(this.npc);
+    }
+
+    if (to === 1) {
+      this.app.stage.addChild(this.npc1);
     }
 
     this.player.vx = 0;
@@ -284,6 +289,13 @@ export class GameDirective implements OnInit, OnDestroy {
     );
     mary.anchor.set(0.5, 0.5);
     this.npc.addChild(mary);
+
+    this.npc1 = new PIXI.Container();
+    const bill = new PIXI.Sprite(
+      PIXI.loader.resources['assets/treasureHunter.json'].textures['blob.png']
+    );
+    bill.anchor.set(0.5, 0.5);
+    this.npc1.addChild(bill);
   }
 
   setup() {
@@ -294,6 +306,8 @@ export class GameDirective implements OnInit, OnDestroy {
     this.treasure.y = this.app.stage.height / 2;
     this.npc.x = this.maps[2].width / 2;
     this.npc.y = this.maps[2].height / 2;
+    this.npc1.x = this.maps[1].width / 2;
+    this.npc1.y = this.maps[1].height / 2;
     this.setupObjects();
 
     this.app.ticker.add(delta => {
@@ -409,6 +423,7 @@ export class GameDirective implements OnInit, OnDestroy {
 
     action.press = () => {
       const canGive = this.isColliding(this.player, this.npc);
+      const canGive1 = this.isColliding(this.player, this.npc1);
 
       if (!this.pickedUp && this.canPickUp) {
         this.pickedUp = true;
@@ -419,6 +434,8 @@ export class GameDirective implements OnInit, OnDestroy {
         this.treasureAt = this.currentRoom;
         if (canGive && this.currentRoom === 2) {
           this.sendMessage.emit(`Jeff gave the apple to Mary.`);
+        } else if (canGive1 && this.currentRoom === 1) {
+          this.sendMessage.emit(`Jeff gave the apple to Bill.`);
         } else {
           this.sendMessage.emit(`Jeff ${this.randomDrop()} the apple.`);
         }
