@@ -6,17 +6,16 @@ import sys
 import argparse
 import pickle
 import pprint
-
-import torch
-from torch.autograd import Variable
 import numpy as np
 import nltk
+import torch
+from torch.autograd import Variable
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 from dataset import Dataset, Config
 from model import DMN
-from run import run_epoch
+from epoch import run_epoch
 from config import get_default_args
 
 args = get_default_args()
