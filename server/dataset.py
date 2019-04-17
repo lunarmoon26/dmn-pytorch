@@ -175,12 +175,9 @@ class Dataset(object):
                             sup_fact = [si2sf[int(sf)] for sf in sup_fact.split()]
 
                             sentnum = story_list.count(self.word2idx['.'])
-                            max_sentnum = max_sentnum if max_sentnum > sentnum \
-                                    else sentnum
-                            max_slen = max_slen if max_slen > len(story_list) \
-                                    else len(story_list)
-                            max_qlen = max_qlen if max_qlen > len(q_split) \
-                                    else len(q_split)
+                            max_sentnum = max(max_sentnum, sentnum)
+                            max_slen = max(max_slen, len(story_list))
+                            max_qlen = max(max_qlen, len(q_split))
 
                             story_tmp = story_list[:]
                             total_data.append([story_tmp, q_split, answer, sup_fact])
@@ -197,10 +194,7 @@ class Dataset(object):
 
                     self.dataset[str(qa_num) + '_' + set_type] = total_data
                     def check_update(d, k, v):
-                        if k in d:
-                            d[k] = v if v > d[k] else d[k]
-                        else:
-                            d[k] = v
+                        d[k] = max(v, d[k]) if k in d else v
                     check_update(self.config.max_sentnum, int(qa_num), max_sentnum)
                     check_update(self.config.max_slen, int(qa_num), max_slen)
                     check_update(self.config.max_qlen, int(qa_num), max_qlen)
@@ -234,12 +228,9 @@ class Dataset(object):
                 q_split = self.map_dict(q_split, self.word2idx)
 
                 sentnum = story_list.count(self.word2idx['.'])
-                max_sentnum = max_sentnum if max_sentnum > sentnum \
-                        else sentnum
-                max_slen = max_slen if max_slen > len(story_list) \
-                        else len(story_list)
-                max_qlen = max_qlen if max_qlen > len(q_split) \
-                        else len(q_split)
+                max_sentnum = max(max_sentnum, sentnum)
+                max_slen = max(max_slen, len(story_list))
+                max_qlen = max(max_qlen, len(q_split))
 
                 story_tmp = story_list[:]
                 total_data.append([story_tmp, q_split, answer, sup_fact])
@@ -256,10 +247,7 @@ class Dataset(object):
 
         self.dataset[str(qa_num) + '_' + set_type] = total_data
         def check_update(d, k, v):
-            if k in d:
-                d[k] = v if v > d[k] else d[k]
-            else:
-                d[k] = v
+            d[k] = max(v, d[k]) if k in d else v
         check_update(self.config.max_sentnum, int(qa_num), max_sentnum)
         check_update(self.config.max_slen, int(qa_num), max_slen)
         check_update(self.config.max_qlen, int(qa_num), max_qlen)
