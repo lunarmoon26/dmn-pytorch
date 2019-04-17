@@ -25,6 +25,7 @@ export class GameDirective implements OnInit, OnDestroy {
   private maps = {};
   private doors = {};
   private player;
+  private npc;
   private treasure;
   private treasureAt = 0;
   private rightBound = 0;
@@ -83,6 +84,10 @@ export class GameDirective implements OnInit, OnDestroy {
 
     if (to === this.treasureAt) {
       this.app.stage.addChild(this.treasure);
+    }
+
+    if (to === 2) {
+      this.app.stage.addChild(this.npc);
     }
 
     this.player.vx = 0;
@@ -144,7 +149,7 @@ export class GameDirective implements OnInit, OnDestroy {
     const kitchText = new PIXI.Text('Kitchen', {
       fontFamily: 'Arial',
       fontSize: 48,
-      fill: 0x0F0F0F,
+      fill: 0x0f0f0f,
       align: 'center'
     });
     // kitchText.anchor.set(0.5, 0.5);
@@ -272,6 +277,13 @@ export class GameDirective implements OnInit, OnDestroy {
     this.player.vx = 0;
     this.player.vy = 0;
     this.player.addChild(explorer);
+
+    this.npc = new PIXI.Container();
+    const mary = new PIXI.Sprite(
+      PIXI.loader.resources['assets/treasureHunter.json'].textures['blob.png']
+    );
+    mary.anchor.set(0.5, 0.5);
+    this.npc.addChild(mary);
   }
 
   setup() {
@@ -280,6 +292,8 @@ export class GameDirective implements OnInit, OnDestroy {
     this.setupMap();
     this.treasure.x = this.app.stage.width / 2;
     this.treasure.y = this.app.stage.height / 2;
+    this.npc.x = this.maps[2].width / 2;
+    this.npc.y = this.maps[2].height / 2;
     this.setupObjects();
 
     this.app.ticker.add(delta => {
@@ -394,6 +408,8 @@ export class GameDirective implements OnInit, OnDestroy {
     };
 
     action.press = () => {
+      const canGive = this.isColliding(this.player, this.npc);
+
       if (!this.pickedUp && this.canPickUp) {
         this.pickedUp = true;
         this.treasureAt = -1;
@@ -401,7 +417,11 @@ export class GameDirective implements OnInit, OnDestroy {
       } else if (this.pickedUp) {
         this.pickedUp = false;
         this.treasureAt = this.currentRoom;
-        this.sendMessage.emit(`Jeff ${this.randomDrop()} the apple.`);
+        if (canGive && this.currentRoom === 2) {
+          this.sendMessage.emit(`Jeff gave the apple to Mary.`);
+        } else {
+          this.sendMessage.emit(`Jeff ${this.randomDrop()} the apple.`);
+        }
       }
     };
 
