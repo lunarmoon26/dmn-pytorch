@@ -4,12 +4,10 @@ import pprint
 import copy
 import pickle
 import nltk
-import string
-import os
+# import string
+import sys, os, ssl
 import gzip
 from os.path import expanduser
-
-import os, ssl
 
 # To bypass ssl issue 
 if (not os.environ.get('PYTHONHTTPSVERIFY', '') and 
