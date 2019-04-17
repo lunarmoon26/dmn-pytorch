@@ -4,7 +4,14 @@
     <img src="assets/cover_lg.jpg" alt="" />
   </section> -->
   <section>
-    <div class="mat-h1">Using <code>W, S, A, D</code> to control moving, <code>E</code> to lifting/dropping and <code>Space</code> to open doors</div>
+    <div class="mat-h1">
+      Using <button mat-flat-button disabled>W</button>,
+      <button mat-flat-button disabled>S</button>,
+      <button mat-flat-button disabled>A</button>,
+      <button mat-flat-button disabled>D</button> to control moving,
+      <button mat-flat-button disabled>E</button> to lifting/dropping and
+      <button mat-flat-button disabled>Space</button> to open doors
+    </div>
   </section>
   <section class="game">
     <div
@@ -54,6 +61,9 @@
           </button>
         </div>
       </form>
+      <div class="mat-body-1">
+        Answer: <span>{{ answer }}</span>
+      </div>
     </div>
   </section>
 </div>

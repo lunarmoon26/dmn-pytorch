@@ -10,6 +10,7 @@ import { ApiService } from '../services/api.service';
 export class BoardComponent implements OnInit {
   eventLogs = [];
   question = '';
+  answer: any;
   get eventLogsText() {
     return this.eventLogs.join('\n');
   }
@@ -20,7 +21,7 @@ export class BoardComponent implements OnInit {
 
   onSubmit(f: NgForm) {
     this.apiService.postLines(this.eventLogs).subscribe(response => {
-      console.log(response);
+      this.answer = response;
     });
   }
 
