@@ -4,11 +4,11 @@ import pickle
 import pprint
 import numpy as np
 import os
+import datetime
 from dataset import Dataset, Config
 from model import DMN
 from run import run_epoch
 from config import get_default_args
-import datetime
 from tensorboardX import SummaryWriter
 
 args = get_default_args()
@@ -68,7 +68,7 @@ def run_experiment(model, dataset, set_num):
     return best_metric
 
 
-def main():
+if __name__ == '__main__':
     if not os.path.exists('./results'):
         os.makedirs('./results')
 
@@ -76,6 +76,7 @@ def main():
     dataset = pickle.load(open(args.data_path, 'rb'))
     
     USE_CUDA = torch.cuda.is_available()
+    print('CUDA available', USE_CUDA)
     device = torch.device("cuda" if USE_CUDA else "cpu")
 
     # update args
@@ -91,7 +92,3 @@ def main():
         results = run_experiment(model, dataset, set_num)
 
     print('### end of experiment')
-
-if __name__ == '__main__':
-    main()
-

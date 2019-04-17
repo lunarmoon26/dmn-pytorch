@@ -22,10 +22,10 @@ $ python server/dataset.py
 ## Run experiments
 ```bash
 # Train and test with default settings
-$ python server/main.py
+$ python server/experiment.py
 
 # Train with different number of hidden units, epochs, and QA sets
-$ python server/main.py --s_rnn_hdim 200 --epoch 20 --set_num 5
+$ python server/experiment.py --s_rnn_hidden_dim 200 --epoch 20 --set_num 5
 ```
 
 ## Run server
